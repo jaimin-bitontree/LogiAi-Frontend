@@ -1,18 +1,13 @@
 
-function Header() {
+interface HeaderProps {
+  title?: string;
+}
+
+function Header({ title = "Dashboard" }: HeaderProps) {
   return (
     <div className='bg-white shadow-sm flex items-center justify-between px-6 py-4 rounded-3xl shrink-0'>
       <div className='font-bold text-lg text-slate-800'>
-        Dashboard
-      </div>
-
-      {/* Center search bar area */}
-      <div className="flex-1 max-w-md mx-8">
-        <input
-          type="text"
-          placeholder="Search here..."
-          className="w-full bg-slate-50 border border-slate-100 rounded-full py-2 px-4 focus:outline-none"
-        />
+        {title}
       </div>
 
       {/* Right icons area */}

@@ -15,7 +15,7 @@ export interface Attachment {
 export interface Message {
   message_id: string;
   sender_email: string;
-  sender_type: "customer" | "admin";
+  sender_type: "customer" | "admin" | "system";
   direction: "incoming" | "outgoing";
   subject: string;
   body: string;
@@ -38,15 +38,16 @@ export interface RequiredRequestData {
   quantity: number;
   package_type: string;
   cargo_weight: number;
-  volume: number;
-  container_type: string;
+  volume: number | null;
+  container_type: string | null;
   transport_mode: string;
-  shipment_type: string;
+  shipment_type: string | null;
 }
 
 export interface OptionalRequestData {
   contact_person_name?: string;
   customer_reference?: string;
+  description_of_goods?: string;
 }
 
 export interface RequestData {
@@ -54,8 +55,20 @@ export interface RequestData {
   optional: OptionalRequestData;
 }
 
+export interface LanguageMetadata {
+  detected_language: string;
+  confidence: number;
+  translated_to_english: boolean;
+  subject_translated_to_english: boolean;
+}
+
+export interface ValidationResult {
+  is_valid: boolean;
+  missing_fields: string[];
+}
+
 export interface Shipment {
-  _id: string;
+  _id?: string;
   request_id: string;
   thread_id?: string;
   conversation_id?: string | null;
@@ -67,10 +80,13 @@ export interface Shipment {
   intent: string;
   translated_body?: string;
   translated_subject?: string;
+  language_metadata?: LanguageMetadata;
   request_data: RequestData;
+  validation_result?: ValidationResult;
   pricing_details: unknown[];
   attachments: Attachment[];
   messages: Message[];
+  message_ids?: string[];
   final_document?: string | null;
   created_at: string;
   updated_at: string;
