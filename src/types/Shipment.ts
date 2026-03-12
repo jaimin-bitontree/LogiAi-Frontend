@@ -1,0 +1,77 @@
+export type ShipmentStatus =
+  | "NEW"
+  | "MISSING_INFO"
+  | "PRICING_PENDING"
+  | "QUOTED"
+  | "CONFIRMED"
+  | "CLOSED"
+  | "CANCELLED";
+
+export interface Attachment {
+  filename: string;
+  url: string;
+}
+
+export interface Message {
+  message_id: string;
+  sender_email: string;
+  sender_type: "customer" | "admin";
+  direction: "incoming" | "outgoing";
+  subject: string;
+  body: string;
+  attachments: Attachment[];
+  received_at: string;
+}
+
+export interface RequiredRequestData {
+  customer_name: string;
+  customer_street_number: string;
+  customer_zip_code: string;
+  customer_country: string;
+  origin_zip_code: string;
+  origin_city: string;
+  origin_country: string;
+  destination_zip_code: string;
+  destination_city: string;
+  destination_country: string;
+  incoterm: string;
+  quantity: number;
+  package_type: string;
+  cargo_weight: number;
+  volume: number;
+  container_type: string;
+  transport_mode: string;
+  shipment_type: string;
+}
+
+export interface OptionalRequestData {
+  contact_person_name?: string;
+  customer_reference?: string;
+}
+
+export interface RequestData {
+  required: RequiredRequestData;
+  optional: OptionalRequestData;
+}
+
+export interface Shipment {
+  _id: string;
+  request_id: string;
+  thread_id?: string;
+  conversation_id?: string | null;
+  last_message_id?: string;
+  customer_email: string;
+  subject: string;
+  body?: string;
+  status: ShipmentStatus;
+  intent: string;
+  translated_body?: string;
+  translated_subject?: string;
+  request_data: RequestData;
+  pricing_details: unknown[];
+  attachments: Attachment[];
+  messages: Message[];
+  final_document?: string | null;
+  created_at: string;
+  updated_at: string;
+}
