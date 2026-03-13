@@ -1,4 +1,5 @@
 export default function CustomTooltip({ active, payload, label }: any) {
+
     if (active && payload && payload.length) {
         return (
             <div className="bg-indigo-100 border-indigo-200 text-white px-4 py-2.5 rounded-2xl shadow-lg shadow-indigo-100 flex flex-col gap-1">

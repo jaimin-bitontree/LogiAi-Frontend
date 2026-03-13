@@ -1,35 +1,36 @@
 import { useState } from "react";
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
+import type { MouseEvent as ReactMouseEvent } from "react";
+
+// Minimal shape of a geo feature returned by react-simple-maps
+interface GeoFeature {
+  id: string;
+  rsmKey: string;
+  properties: { name: string };
+}
+
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-// Your data — map ISO numeric country codes to request counts
-const countryData: Record<string, number> = {
-    "356": 4800,  // India
-    "840": 9200,  // USA
-    "826": 3100,  // UK
-    "276": 2700,  // Germany
-    "392": 5400,  // Japan
-    "076": 1900,  // Brazil
-    "124": 2100,  // Canada
-    "036": 1600,  // Australia
-};
-
-function getColor(count: number): string {
-    if (!count) return "#e0e7ff";       // indigo-100 (no data)
-    if (count < 2000) return "#a5b4fc"; // indigo-300
-    if (count < 4000) return "#818cf8"; // indigo-400
-    if (count < 6000) return "#6366f1"; // indigo-500
-    return "#4338ca";                   // indigo-700 (highest)
+interface WorldMapCardProps {
+  countryData: Record<string, number>;
 }
 
 interface TooltipData {
-    name: string;
-    count: number;
-    x: number;
-    y: number;
+  name: string;
+  count: number;
+  x: number;
+  y: number;
 }
 
-export default function WorldMapCard() {
+function getColor(count: number): string {
+  if (!count) return "#e0e7ff";       // indigo-100 (no data)
+  if (count < 2000) return "#a5b4fc"; // indigo-300
+  if (count < 4000) return "#818cf8"; // indigo-400
+  if (count < 6000) return "#6366f1"; // indigo-500
+  return "#4338ca";                   // indigo-700 (highest)
+}
+
+export default function WorldMapCard({ countryData }: WorldMapCardProps) {
 const [zoom, setZoom] = useState(3);
 
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -64,8 +65,8 @@ const [zoom, setZoom] = useState(3);
                         translateExtent={[[-100, -100], [900, 600]]}
                     >
                         <Geographies geography={geoUrl}>
-                            {({ geographies }) =>
-                                geographies.map((geo) => {
+                            {({ geographies }: { geographies: GeoFeature[] }) =>
+                                geographies.map((geo: GeoFeature) => {
                                     const count = countryData[geo.id] ?? 0;
                                     return (
                                         <Geography
@@ -79,7 +80,7 @@ const [zoom, setZoom] = useState(3);
                                                 hover: { outline: "none", fill: "#4f46e5", cursor: "pointer" },
                                                 pressed: { outline: "none" },
                                             }}
-                                            onMouseEnter={(e) => {
+                                            onMouseEnter={(e: ReactMouseEvent) => {
                                                 setTooltip({
                                                     name: geo.properties.name,
                                                     count,
@@ -87,7 +88,7 @@ const [zoom, setZoom] = useState(3);
                                                     y: e.clientY,
                                                 });
                                             }}
-                                            onMouseMove={(e) => {
+                                            onMouseMove={(e: ReactMouseEvent) => {
                                                 setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
                                             }}
                                             onMouseLeave={() => setTooltip(null)}

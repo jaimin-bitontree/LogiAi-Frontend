@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,55 +6,27 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { getShipments } from "../service/shipmentService";
 import type { Shipment, ShipmentStatus } from "../types/Shipment";
-
-export const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "All", label: "All Statuses" },
-  { value: "NEW", label: "New" },
-  { value: "MISSING_INFO", label: "Missing Info" },
-  { value: "PRICING_PENDING", label: "Pricing Pending" },
-  { value: "QUOTED", label: "Quoted" },
-  { value: "CONFIRMED", label: "Confirmed" },
-  { value: "CLOSED", label: "Closed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-const STATUS_STYLES: Record<ShipmentStatus, string> = {
-  NEW: "bg-sky-100 text-sky-700",
-  MISSING_INFO: "bg-orange-100 text-orange-700",
-  PRICING_PENDING: "bg-yellow-100 text-yellow-700",
-  QUOTED: "bg-blue-100 text-blue-700",
-  CONFIRMED: "bg-indigo-100 text-indigo-700",
-  CLOSED: "bg-green-100 text-green-700",
-  CANCELLED: "bg-red-100 text-red-700",
-};
-
-const STATUS_LABELS: Record<ShipmentStatus, string> = {
-  NEW: "New",
-  MISSING_INFO: "Missing Info",
-  PRICING_PENDING: "Pricing Pending",
-  QUOTED: "Quoted",
-  CONFIRMED: "Confirmed",
-  CLOSED: "Closed",
-  CANCELLED: "Cancelled",
-};
+import { useShipments } from "./useShipments";
+import {
+  STATUS_LABELS,
+  STATUS_OPTIONS,
+  TABLE_STATUS_STYLES,
+} from "../constants/shipment";
 
 export function useShipmentPage() {
+  // Local UI state for shipment page interactions.
   const [searchReqId, setSearchReqId] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
 
-  const {
+   const {
     data: shipments = [],
     isLoading,
     isError,
     error,
-  } = useQuery({
-    queryKey: ["shipments"],
-    queryFn: getShipments,
-  });
+  } = useShipments();
 
   const filteredData = useMemo<Shipment[]>(() => {
     return shipments.filter((row) => {
@@ -105,7 +76,7 @@ export function useShipmentPage() {
         cell: ({ getValue }) => {
           const status = getValue() as ShipmentStatus;
           return (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_STYLES[status]}`}>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${TABLE_STATUS_STYLES[status]}`}>
               {STATUS_LABELS[status]}
             </span>
           );
