@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logiaiGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="0.5" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="48" height="48" rx="14" fill="url(#logiaiGradient)"/>
+  <path d="M20 40V24H24V36H34V40H20Z" fill="white"/>
+  <path d="M38 24H44V40H40V28H38V24Z" fill="white"/>
+  <circle cx="42" cy="20" r="3" fill="white"/>
+</svg>

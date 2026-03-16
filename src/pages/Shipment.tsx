@@ -6,6 +6,7 @@ import {
   ChevronLeft, ChevronRight, Package,
 } from "lucide-react";
 import ShipmentDetailModal from "../components/ShipmentDetailModal";
+import PageLoader from "../components/PageLoader";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useShipmentPage } from "../hooks/useShipmentPage";
@@ -33,7 +34,7 @@ export default function ShipmentPage() {
 
   // Keeps one consistent page shell for loading, error, and content states.
   const renderPageShell = (content: React.ReactNode) => (
-    <div className='w-full h-screen flex bg-[#f0f2f5] p-2 gap-4 overflow-hidden'>
+    <div className='w-full h-screen flex bg-[var(--dashboard-bg)] p-2 gap-4 overflow-hidden'>
       <Sidebar />
       <div className='flex flex-col flex-1 gap-4 pr-2 overflow-hidden'>
         <Header title="Shipments" />
@@ -45,9 +46,7 @@ export default function ShipmentPage() {
   );
 
   if (isLoading) {
-    return renderPageShell(
-      <div className="bg-white rounded-3xl p-6 text-gray-500">Loading shipments...</div>
-    );
+    return renderPageShell(<PageLoader message="Loading shipments..." />);
   }
 
   if (isError) {
@@ -64,8 +63,8 @@ export default function ShipmentPage() {
 
       {/* Page Header */}
       <div className="mb-6 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-          <Package className="w-5 h-5 text-indigo-600" />
+        <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+          <Package className="w-5 h-5 text-teal-700" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900">Shipment Requests</h1>
@@ -86,7 +85,7 @@ export default function ShipmentPage() {
             placeholder="Search by Request ID..."
             value={searchReqId}
             onChange={(e) => setSearchReqId(e.target.value)}
-            className="pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white shadow-sm w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white shadow-sm w-72 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
           />
         </div>
 
@@ -96,7 +95,7 @@ export default function ShipmentPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-9 pr-6 py-2.5 text-sm border border-gray-200 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none cursor-pointer"
+            className="pl-9 pr-6 py-2.5 text-sm border border-gray-200 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent appearance-none cursor-pointer"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -141,7 +140,7 @@ export default function ShipmentPage() {
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-gray-50 hover:bg-indigo-50/30 transition-colors"
+                    className="border-b border-gray-50 hover:bg-teal-50/40 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-5 py-3.5 text-gray-700">

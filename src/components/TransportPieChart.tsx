@@ -4,7 +4,7 @@ interface TransportPieChartProps {
   data: { name: string; value: number }[];
 }
 
-const COLORS = ["#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#e0e7ff"];
+const COLORS = ["#0f766e", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ef4444"];
 
 interface TooltipProps {
   active?: boolean;
@@ -27,6 +27,9 @@ function CustomTooltip({ active, payload }: TooltipProps) {
 }
 
 export default function TransportPieChart({ data }: TransportPieChartProps) {
+  const chartData = data.filter((entry) => entry.value > 0);
+  const safeData = chartData.length > 0 ? chartData : data;
+
   return (
     <div className="bg-white rounded-3xl shadow-sm p-6 flex flex-col h-full w-full">
       <h2 className="text-gray-500 font-medium text-sm mb-4">Transport Mode</h2>
@@ -34,7 +37,7 @@ export default function TransportPieChart({ data }: TransportPieChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={safeData}
               cx="50%"
               cy="50%"
               innerRadius="50%"
@@ -42,7 +45,7 @@ export default function TransportPieChart({ data }: TransportPieChartProps) {
               paddingAngle={4}
               dataKey="value"
             >
-              {data.map((_, index) => (
+              {safeData.map((_, index) => (
                 <Cell key={index} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>

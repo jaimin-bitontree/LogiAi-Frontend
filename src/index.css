@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+:root {
+  --dashboard-bg: #f8fafc;
+  --dashboard-primary: #0f766e;
+  --dashboard-primary-hover: #115e59;
+  --dashboard-text: #0f172a;
+  --dashboard-muted: #334155;
+  --dashboard-border: #e2e8f0;
+  --dashboard-warning: #d97706;
+  --dashboard-error: #dc2626;
+}
+
 @layer utilities {
 
   /* Custom Scrollbar */

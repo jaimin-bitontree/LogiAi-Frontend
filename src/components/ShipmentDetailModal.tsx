@@ -1,11 +1,18 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     X, Package, User, Mail, MapPin, Phone, Calendar,
-    FileText, Weight, Ship, Box, Globe, Hash, Layers,
+    FileText, Weight, Ship, Box, Globe, Hash, Layers, Bell,
     ExternalLink, Paperclip,
 } from "lucide-react";  
 import type { Shipment } from "../types/Shipment";
 import { MODAL_STATUS_STYLES, STATUS_LABELS } from "../constants/shipment";
+import { notifyShipmentCustomer } from "../service/shipmentService";
+
+interface ToastState {
+    type: "success" | "error";
+    message: string;
+}
 
 // ── Sub-components ─────────────────────────────────────────
 interface InfoRowProps {
@@ -44,6 +51,29 @@ interface ShipmentDetailModalProps {
 
 export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetailModalProps) {
     const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+    const [toast, setToast] = useState<ToastState | null>(null);
+    const toastTimerRef = useRef<number | null>(null);
+    const queryClient = useQueryClient();
+
+    const showToast = (type: ToastState["type"], message: string) => {
+        setToast({ type, message });
+
+        if (toastTimerRef.current) {
+            window.clearTimeout(toastTimerRef.current);
+        }
+
+        toastTimerRef.current = window.setTimeout(() => {
+            setToast(null);
+        }, 3000);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (toastTimerRef.current) {
+                window.clearTimeout(toastTimerRef.current);
+            }
+        };
+    }, []);
 
     const req = shipment?.request_data?.required;
     const opt = shipment?.request_data?.optional;
@@ -56,6 +86,31 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
         [shipment, selectedMessageId]
     );
 
+    const reminderMutation = useMutation({
+        mutationFn: notifyShipmentCustomer,
+        onSuccess: async (result) => {
+            if (result.ok) {
+                showToast("success", result.message || "Reminder email sent successfully.");
+                await queryClient.invalidateQueries({ queryKey: ["shipments"] });
+            } else {
+                showToast("error", result.message || "Unable to send reminder email.");
+            }
+        },
+        onError: (error) => {
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : "Unable to send reminder email.";
+            showToast("error", message);
+        },
+    });
+
+    const handleSendReminder = async () => {
+        if (!shipment?.request_id) return;
+
+        await reminderMutation.mutateAsync(shipment.request_id);
+    };
+
     if (!shipment || !req) return null;
 
     return (
@@ -65,8 +120,8 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-indigo-600" />
+                        <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+                            <Package className="w-5 h-5 text-teal-700" />
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Request ID</p>
@@ -142,7 +197,7 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                                         href={att.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2.5 rounded-lg transition-colors font-medium"
+                                        className="flex items-center gap-2 text-sm text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-4 py-2.5 rounded-lg transition-colors font-medium"
                                     >
                                         <Paperclip className="w-4 h-4" />
                                         {att.filename}
@@ -174,7 +229,7 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                                             onClick={() => setSelectedMessageId(message.message_id)}
                                             className={`w-full text-left rounded-lg px-3 py-2.5 mb-2 last:mb-0 transition-colors border ${
                                                 isSelected
-                                                    ? "bg-indigo-50 border-indigo-200"
+                                                    ? "bg-teal-50 border-teal-200"
                                                     : "bg-white border-transparent hover:bg-gray-100"
                                             }`}
                                         >
@@ -220,7 +275,7 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                                                             href={attachment.url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 bg-white hover:bg-indigo-50 px-3 py-2 rounded-lg transition-colors font-medium"
+                                                            className="flex items-center gap-2 text-sm text-teal-700 hover:text-teal-900 bg-white hover:bg-teal-50 px-3 py-2 rounded-lg transition-colors font-medium"
                                                         >
                                                             <Paperclip className="w-4 h-4" />
                                                             {attachment.filename}
@@ -245,6 +300,17 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
 
                 {/* Footer */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end shrink-0">
+                    {shipment.status === "QUOTED" && (
+                        <button
+                            type="button"
+                            onClick={handleSendReminder}
+                            disabled={reminderMutation.isPending}
+                            className="mr-3 px-5 py-2 text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                        >
+                            <Bell className="w-4 h-4" />
+                            {reminderMutation.isPending ? "Sending..." : "Send Reminder"}
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="px-5 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
@@ -253,6 +319,18 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                     </button>
                 </div>
             </div>
+
+            {toast && (
+                <div
+                    className={`fixed top-5 right-5 z-[60] px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium ${
+                        toast.type === "success"
+                            ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                            : "bg-red-50 border border-red-200 text-red-700"
+                    }`}
+                >
+                    {toast.message}
+                </div>
+            )}
         </div>
     );
 }

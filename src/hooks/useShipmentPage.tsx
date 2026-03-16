@@ -49,7 +49,7 @@ export function useShipmentPage() {
         cell: ({ row }) => (
           <button
             onClick={() => setSelectedShipment(row.original)}
-            className="font-mono text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline underline-offset-2 transition-colors text-left"
+            className="font-mono text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline underline-offset-2 transition-colors text-left"
           >
             {row.original.request_id}
           </button>

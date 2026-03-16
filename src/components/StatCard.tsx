@@ -67,12 +67,12 @@ export default function StatCard({
             <div className="w-full h-10 my-2">
                 <Sparklines data={sparklineData} height={40}>
                     <SparklinesLine
-                        color={isPositiveTrend ? "#6366f1" : "#f87171"}
+                        color={isPositiveTrend ? "#0f766e" : "#dc2626"}
                         style={{ fill: "none", strokeWidth: 2 }}
                     />
                     <SparklinesSpots
                         size={2}
-                        style={{ fill: isPositiveTrend ? "#6366f1" : "#f87171" }}
+                        style={{ fill: isPositiveTrend ? "#0f766e" : "#dc2626" }}
                     />
                 </Sparklines>
             </div>
@@ -80,7 +80,7 @@ export default function StatCard({
             {/* Bottom Row */}
             <div className="flex items-center gap-2 text-sm font-medium">
                 <span className={`px-2 py-0.5 rounded-md text-xs font-bold flex items-center gap-1 ${
-                    isPositiveTrend ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
+                    isPositiveTrend ? "bg-teal-100 text-teal-700" : "bg-red-100 text-red-600"
                 }`}>
                     {trendPercentage}
                     {isPositiveTrend

@@ -7,9 +7,7 @@ import TransportPieChart from '../components/TransportPieChart'
 import Sidebar from '../components/Sidebar'
 import { useShipments } from '../hooks/useShipments'
 import {
-  getTotalRequests,
-  getConfirmedRequests,
-  getCancelledRequests,
+    getDashboardStatCards,
   getDailyRequests,
   getTransportModeData,
   getMapCountryData,
@@ -19,15 +17,13 @@ function Dashboard() {
     // shipments defaults to [] so all metrics show 0 while loading
     const { data: shipments = [], isError, error } = useShipments();
 
-    const totalRequests = getTotalRequests(shipments);
-    const cancelledRequests = getCancelledRequests(shipments);
-    const confirmedRequests = getConfirmedRequests(shipments);
+    const statCards = getDashboardStatCards(shipments);
     const dailyData = getDailyRequests(shipments);
     const transportData = getTransportModeData(shipments);
     const mapCountryData = getMapCountryData(shipments);
 
     return (
-        <div className='w-full h-screen flex bg-[#f0f2f5] p-2 gap-4 overflow-hidden'>
+        <div className='w-full h-screen flex bg-[var(--dashboard-bg)] p-2 gap-4 overflow-hidden'>
             <Sidebar />
 
             <div className='flex flex-col flex-1 gap-4 pr-2 overflow-hidden'>
@@ -45,42 +41,42 @@ function Dashboard() {
                         <div className="col-span-1">
                             <StatCard
                                 title="Total Requests"
-                                value={totalRequests}
-                                trendPercentage="0%"
-                                trendLabel="Live API Data"
-                                isPositiveTrend={true}
+                                value={statCards.total.value}
+                                trendPercentage={statCards.total.trendPercentage}
+                                trendLabel={statCards.total.trendLabel}
+                                isPositiveTrend={statCards.total.isPositiveTrend}
                                 icon={Package}
-                                iconBgColor="bg-indigo-50"
-                                iconColor="text-indigo-500"
-                                sparklineData={[30, 45, 28, 60, 40, 75, 55, 80, 65, 90]}
+                                iconBgColor="bg-teal-50"
+                                iconColor="text-teal-700"
+                                sparklineData={statCards.total.sparklineData}
                             />
                         </div>
 
                         <div className="col-span-1">
                             <StatCard
                                 title="Cancelled Requests"
-                                value={cancelledRequests}
-                                trendPercentage="0%"
-                                trendLabel="Live API Data"
-                                isPositiveTrend={false}
+                                value={statCards.cancelled.value}
+                                trendPercentage={statCards.cancelled.trendPercentage}
+                                trendLabel={statCards.cancelled.trendLabel}
+                                isPositiveTrend={statCards.cancelled.isPositiveTrend}
                                 icon={XCircle}
-                                iconBgColor="bg-red-50"
-                                iconColor="text-red-400"
-                                sparklineData={[50, 40, 60, 35, 55, 30, 45, 25, 40, 20]}
+                                iconBgColor="bg-amber-50"
+                                iconColor="text-amber-600"
+                                sparklineData={statCards.cancelled.sparklineData}
                             />
                         </div>
 
                         <div className="col-span-1">
                             <StatCard
                                 title="Confirmed Requests"
-                                value={confirmedRequests}
-                                trendPercentage="0%"
-                                trendLabel="Live API Data"
-                                isPositiveTrend={true}
+                                value={statCards.confirmed.value}
+                                trendPercentage={statCards.confirmed.trendPercentage}
+                                trendLabel={statCards.confirmed.trendLabel}
+                                isPositiveTrend={statCards.confirmed.isPositiveTrend}
                                 icon={CheckCircle}
-                                iconBgColor="bg-green-50"
-                                iconColor="text-green-500"
-                                sparklineData={[20, 35, 25, 50, 35, 60, 45, 70, 55, 85]}
+                                iconBgColor="bg-emerald-50"
+                                iconColor="text-emerald-600"
+                                sparklineData={statCards.confirmed.sparklineData}
                             />
                         </div>
 
@@ -90,7 +86,7 @@ function Dashboard() {
                                 data={dailyData}
                                 xAxisKey="name"
                                 yAxisKey="requests"
-                                barColor="#6366f1"
+                                barColor="#0f766e"
                             />
                         </div>
 
