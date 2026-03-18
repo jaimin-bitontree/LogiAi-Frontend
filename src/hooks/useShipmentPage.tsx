@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,18 +8,46 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import type { Shipment, ShipmentStatus } from "../types/Shipment";
 import { useShipments } from "./useShipments";
+import { COUNTRY_NAME_TO_ISO_NUMERIC } from "../data/countryCodeMap";
 import {
   STATUS_LABELS,
   STATUS_OPTIONS,
   TABLE_STATUS_STYLES,
 } from "../constants/shipment";
 
-export function useShipmentPage() {
+export function useShipmentPage(
+  initialStatus = "All",
+  initialDay = "",
+  initialMode = "",
+  initialCountryCode = "",
+  onOpenShipment?: (requestId: string) => void
+) {
   // Local UI state for shipment page interactions.
+  const validStatuses = new Set(STATUS_OPTIONS.map((option) => option.value));
+  const safeInitialStatus = validStatuses.has(initialStatus) ? initialStatus : "All";
   const [searchReqId, setSearchReqId] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState(safeInitialStatus);
+  const [dayFilter, setDayFilter] = useState(initialDay);
+  const [modeFilter, setModeFilter] = useState(initialMode);
+  const [countryCodeFilter, setCountryCodeFilter] = useState(initialCountryCode);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+
+  useEffect(() => {
+    setStatusFilter(safeInitialStatus);
+  }, [safeInitialStatus]);
+
+  useEffect(() => {
+    setDayFilter(initialDay);
+  }, [initialDay]);
+
+  useEffect(() => {
+    setModeFilter(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    setCountryCodeFilter(initialCountryCode);
+  }, [initialCountryCode]);
 
    const {
     data: shipments = [],
@@ -37,9 +65,30 @@ export function useShipmentPage() {
       const matchesStatus =
         statusFilter === "All" || row.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      const createdAt = new Date(row.created_at);
+      const createdDateKey = Number.isNaN(createdAt.getTime())
+        ? ""
+        : `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, "0")}-${String(createdAt.getDate()).padStart(2, "0")}`;
+
+      const matchesDay = !dayFilter || createdDateKey === dayFilter;
+
+      const normalizedMode = (row.request_data?.required?.transport_mode ?? "")
+        .trim()
+        .toLowerCase();
+      const targetMode = modeFilter.trim().toLowerCase();
+      const matchesMode =
+        !targetMode ||
+        normalizedMode === targetMode ||
+        normalizedMode.includes(targetMode);
+
+      const originCountry = row.request_data?.required?.origin_country ?? "";
+      const originCountryCode = COUNTRY_NAME_TO_ISO_NUMERIC[originCountry] ?? "";
+      const matchesCountry =
+        !countryCodeFilter || originCountryCode === countryCodeFilter;
+
+      return matchesSearch && matchesStatus && matchesDay && matchesMode && matchesCountry;
     });
-  }, [shipments, searchReqId, statusFilter]);
+  }, [shipments, searchReqId, statusFilter, dayFilter, modeFilter, countryCodeFilter]);
 
   const columns = useMemo<ColumnDef<Shipment>[]>(
     () => [
@@ -48,8 +97,14 @@ export function useShipmentPage() {
         header: "Req ID",
         cell: ({ row }) => (
           <button
-            onClick={() => setSelectedShipment(row.original)}
-            className="font-mono text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline underline-offset-2 transition-colors text-left"
+            onClick={() => {
+              if (onOpenShipment) {
+                onOpenShipment(row.original.request_id);
+                return;
+              }
+              setSelectedShipment(row.original);
+            }}
+            className="font-mono text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline underline-offset-2 transition-colors text-left"
           >
             {row.original.request_id}
           </button>
@@ -105,7 +160,7 @@ export function useShipmentPage() {
         ),
       },
     ],
-    []
+    [onOpenShipment]
   );
 
   const table = useReactTable<Shipment>({
@@ -133,9 +188,15 @@ export function useShipmentPage() {
     pageIndex,
     searchReqId,
     selectedShipment,
+    dayFilter,
+    modeFilter,
+    countryCodeFilter,
     setSearchReqId,
     setSelectedShipment,
     setStatusFilter,
+    setDayFilter,
+    setModeFilter,
+    setCountryCodeFilter,
     statusFilter,
     statusOptions: STATUS_OPTIONS,
     table,

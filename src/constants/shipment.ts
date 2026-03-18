@@ -26,7 +26,7 @@ export const TABLE_STATUS_STYLES: Record<ShipmentStatus, string> = {
   MISSING_INFO: "bg-orange-100 text-orange-700",
   PRICING_PENDING: "bg-yellow-100 text-yellow-700",
   QUOTED: "bg-blue-100 text-blue-700",
-  CONFIRMED: "bg-teal-100 text-teal-700",
+  CONFIRMED: "bg-emerald-100 text-emerald-700",
   CLOSED: "bg-green-100 text-green-700",
   CANCELLED: "bg-red-100 text-red-700",
 };
@@ -36,7 +36,7 @@ export const MODAL_STATUS_STYLES: Record<ShipmentStatus, string> = {
   MISSING_INFO: "bg-orange-100 text-orange-800 border-orange-200",
   PRICING_PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
   QUOTED: "bg-blue-100 text-blue-800 border-blue-200",
-  CONFIRMED: "bg-teal-100 text-teal-800 border-teal-200",
+  CONFIRMED: "bg-emerald-100 text-emerald-800 border-emerald-200",
   CLOSED: "bg-green-100 text-green-800 border-green-200",
   CANCELLED: "bg-red-100 text-red-800 border-red-200",
 };

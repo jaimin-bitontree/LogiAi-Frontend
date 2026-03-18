@@ -8,43 +8,51 @@ import {
     CartesianGrid
 } from 'recharts';
 import CustomToolTip from './CustomToolTip';
-interface DataItem {
-    [key: string]: string | number;
-}
-
-interface BarChartCardProps {
+interface BarChartCardProps<T extends object> {
     title: string;
-    data: DataItem[];
+    data: T[];
     xAxisKey: string;
     yAxisKey: string;
     barColor?: string;
+    onBarClick?: (entry: T) => void;
 }
 
-export default function BarChartCard({
+export default function BarChartCard<T extends object>({
     title,
     data,
     xAxisKey,
     yAxisKey,
-    barColor = "#6366f1"
-}: BarChartCardProps) {
+    barColor = "#6366f1",
+    onBarClick,
+}: BarChartCardProps<T>) {
     return (
-        <div className="bg-white rounded-3xl shadow-sm p-6 flex flex-col h-full w-full">
-            <h2 className="text-gray-500 font-medium text-sm mb-6">{title}</h2>
-            <div className="flex-1 w-full min-h-[220px]">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-6 flex flex-col h-full w-full min-w-0">
+            <h2 className="text-slate-600 font-semibold text-sm mb-4 sm:mb-6">{title}</h2>
+            <div className="flex-1 w-full min-h-50 sm:min-h-55">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <BarChart
+                        data={data}
+                        margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
+                        onClick={(state) => {
+                            const payload = state?.activePayload?.[0]?.payload as T | undefined;
+                            if (payload && onBarClick) {
+                                onBarClick(payload);
+                            }
+                        }}
+                    >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                         <XAxis
                             dataKey={xAxisKey}
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9ca3af', fontSize: 13 }}
-                            dy={10}
+                            tick={{ fill: '#9ca3af', fontSize: 11 }}
+                            dy={8}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9ca3af', fontSize: 13 }}
+                            width={26}
+                            tick={{ fill: '#9ca3af', fontSize: 11 }}
                         />
                         {/* <Tooltip
                             cursor={{ fill: '#f8fafc' }}
@@ -56,14 +64,22 @@ export default function BarChartCard({
                             }}
                         /> */}
                         <Tooltip
-                            cursor={{ fill: 'rgba(15, 118, 110, 0.10)' }}
+                            cursor={{ fill: 'rgba(29, 78, 216, 0.10)' }}
                             content={<CustomToolTip />}
                         />
                         <Bar
                             dataKey={yAxisKey}
                             fill={barColor}
                             radius={[6, 6, 0, 0]}
-                            barSize={32}
+                            barSize={22}
+                            minPointSize={onBarClick ? 4 : 0}
+                            cursor={onBarClick ? "pointer" : "default"}
+                            onClick={(barData) => {
+                                const payload = (barData as { payload?: T })?.payload;
+                                if (payload && onBarClick) {
+                                    onBarClick(payload);
+                                }
+                            }}
                         />
                     </BarChart>
                 </ResponsiveContainer>

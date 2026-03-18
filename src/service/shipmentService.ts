@@ -178,7 +178,13 @@ function normalizeShipment(input: unknown): Shipment {
 }
 
 export const getShipments = async (): Promise<Shipment[]> => {
-  const response = await api.get<unknown>("/shipments");
+  // Fetch all shipments from the API without pagination limits
+  // Pass limit=1000 to request up to 1000 records in a single response
+  const response = await api.get<unknown>("/shipments", {
+    params: {
+      limit: 1000,  // Request up to 1000 records
+    },
+  });
   const payload = Array.isArray(response.data) ? response.data : [];
 
   return payload.map((shipment) => normalizeShipment(shipment));

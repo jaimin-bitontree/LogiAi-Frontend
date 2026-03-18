@@ -1,5 +1,6 @@
 import type { Shipment } from "../types/Shipment";
 import { COUNTRY_NAME_TO_ISO_NUMERIC } from "../data/countryCodeMap";
+import { toUSD, type ExchangeRates } from "../service/currencyService";
 
 type StatMode = "total" | "confirmed" | "cancelled";
 
@@ -15,6 +16,25 @@ export interface DashboardStatCards {
   total: DashboardStatMetric;
   cancelled: DashboardStatMetric;
   confirmed: DashboardStatMetric;
+}
+
+export interface RevenueBreakdownItem {
+  name: string;
+  value: number;
+  percentage: number;
+}
+
+export interface ConfirmedRevenueAnalytics {
+  totalRevenueUsd: number;
+  confirmedWithPricing: number;
+  chargeBreakdown: RevenueBreakdownItem[];
+  transportModeRevenue: RevenueBreakdownItem[];
+}
+
+export interface DailyRequestPoint {
+  name: string;
+  requests: number;
+  dateKey: string;
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -137,32 +157,60 @@ export function getCancelledRequests(shipments: Shipment[]) {
 }
 
 export function getDailyRequests(shipments: Shipment[]) {
-  const dayMap: Record<string, number> = {
-    Sun: 0,
-    Mon: 0,
-    Tue: 0,
-    Wed: 0,
-    Thu: 0,
-    Fri: 0,
-    Sat: 0,
+  const windowDays = 7;
+  const today = startOfDay(new Date());
+  const firstDay = addDays(today, -(windowDays - 1));
+
+  const toDateKey = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const dayMap: Record<string, DailyRequestPoint> = {};
+
+  for (let i = 0; i < windowDays; i += 1) {
+    const date = addDays(firstDay, i);
+    const dateKey = toDateKey(date);
+    dayMap[dateKey] = {
+      name: date.toLocaleDateString("en-US", { day: "2-digit", month: "short" }),
+      requests: 0,
+      dateKey,
+    };
   }
+
   shipments.forEach((shipment) => {
-    const date = new Date(shipment.created_at);
-    const day = date.toLocaleDateString("en-US", { weekday: "short" });
-    if (dayMap[day] !== undefined) {
-      dayMap[day] += 1;
-    }
+    const createdAt = new Date(shipment.created_at);
+    if (Number.isNaN(createdAt.getTime())) return;
+
+    const createdDay = startOfDay(createdAt);
+    if (createdDay < firstDay || createdDay > today) return;
+
+    const dateKey = toDateKey(createdDay);
+    if (!dayMap[dateKey]) return;
+
+    dayMap[dateKey].requests += 1;
   });
 
-  return Object.entries(dayMap).map(([name, requests]) => ({
-    name,
-    requests,
-  }));
+  return Object.values(dayMap);
 }
 
   
 // Valid transport modes as defined by the backend
 const TRANSPORT_MODES = ["Sea", "Air", "Road", "Rail"] as const;
+
+function normalizeTransportMode(mode: string | null | undefined): string {
+  const value = (mode ?? "").trim().toLowerCase();
+
+  if (!value) return "Unknown";
+  if (value === "sea" || value.includes("sea")) return "Sea";
+  if (value === "air" || value.includes("air")) return "Air";
+  if (value === "road" || value.includes("road") || value.includes("truck")) return "Road";
+  if (value === "rail" || value.includes("rail") || value.includes("train")) return "Rail";
+
+  return "Unknown";
+}
 
 export function getTransportModeData(shipments: Shipment[]) {
   // Initialise all modes to 0 so every slice always appears in the chart
@@ -171,7 +219,7 @@ export function getTransportModeData(shipments: Shipment[]) {
   );
 
   shipments.forEach((shipment) => {
-    const mode = shipment.request_data?.required?.transport_mode?.trim() ?? "Unknown";
+    const mode = normalizeTransportMode(shipment.request_data?.required?.transport_mode);
     // Count known modes; bucket anything unexpected as "Unknown"
     if (mode in modeMap) {
       modeMap[mode] += 1;
@@ -214,4 +262,102 @@ export function getMapCountryData(shipments: Shipment[]) {
   });
 
   return mappedData;
+}
+
+function normalizeAmount(value: string | number | null | undefined): number {
+  const parsed = Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toBreakdownItems(
+  source: Record<string, number>,
+  denominator: number,
+  includeZero = false
+): RevenueBreakdownItem[] {
+  return Object.entries(source)
+    .filter(([, value]) => includeZero || value > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({
+      name,
+      value,
+      percentage: denominator > 0 ? (value / denominator) * 100 : 0,
+    }));
+}
+
+export function getConfirmedRevenueAnalytics(
+  shipments: Shipment[],
+  rates: ExchangeRates
+): ConfirmedRevenueAnalytics {
+  const chargeTotals: Record<string, number> = {
+    "Main Freight": 0,
+    Origin: 0,
+    Destination: 0,
+    Additional: 0,
+  };
+
+  const modeTotals: Record<string, number> = Object.fromEntries(
+    TRANSPORT_MODES.map((mode) => [mode, 0])
+  );
+
+  let totalRevenueUsd = 0;
+  let confirmedWithPricing = 0;
+
+  shipments.forEach((shipment) => {
+    if (shipment.status !== "CONFIRMED") return;
+
+    const latestQuote = shipment.pricing_details.at(-1);
+    if (!latestQuote) return;
+
+    const mainFreightUsd = latestQuote.main_freight_charges.reduce((sum, charge) => {
+      const amount = normalizeAmount(charge.amount);
+      return sum + toUSD(amount, (charge.currency || "USD").toUpperCase(), rates);
+    }, 0);
+
+    const originUsd = latestQuote.origin_charges.reduce((sum, charge) => {
+      const amount = normalizeAmount(charge.amount);
+      return sum + toUSD(amount, (charge.currency || "USD").toUpperCase(), rates);
+    }, 0);
+
+    const destinationUsd = latestQuote.destination_charges.reduce((sum, charge) => {
+      const amount = normalizeAmount(charge.amount);
+      return sum + toUSD(amount, (charge.currency || "USD").toUpperCase(), rates);
+    }, 0);
+
+    const additionalUsd = latestQuote.additional_charges.reduce((sum, charge) => {
+      const amount = normalizeAmount(charge.amount);
+      return sum + toUSD(amount, (charge.currency || "USD").toUpperCase(), rates);
+    }, 0);
+
+    const shipmentRevenueUsd =
+      mainFreightUsd + originUsd + destinationUsd + additionalUsd;
+
+    chargeTotals["Main Freight"] += mainFreightUsd;
+    chargeTotals.Origin += originUsd;
+    chargeTotals.Destination += destinationUsd;
+    chargeTotals.Additional += additionalUsd;
+
+    // Revenue-by-mode must follow request mode, not quote text labels.
+    const mode = normalizeTransportMode(
+      shipment.request_data?.required?.transport_mode
+    );
+
+    if (mode in modeTotals) {
+      modeTotals[mode] += shipmentRevenueUsd;
+    } else {
+      modeTotals.Unknown = (modeTotals.Unknown ?? 0) + shipmentRevenueUsd;
+    }
+
+    if (shipmentRevenueUsd > 0) {
+      confirmedWithPricing += 1;
+    }
+
+    totalRevenueUsd += shipmentRevenueUsd;
+  });
+
+  return {
+    totalRevenueUsd,
+    confirmedWithPricing,
+    chargeBreakdown: toBreakdownItems(chargeTotals, totalRevenueUsd),
+    transportModeRevenue: toBreakdownItems(modeTotals, totalRevenueUsd, true),
+  };
 }

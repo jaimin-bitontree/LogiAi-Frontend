@@ -2,9 +2,10 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recha
 
 interface TransportPieChartProps {
   data: { name: string; value: number }[];
+  onSliceClick?: (mode: string) => void;
 }
 
-const COLORS = ["#0f766e", "#14b8a6", "#0ea5e9", "#64748b", "#f59e0b"];
+const COLORS = ["#1d4ed8", "#3b82f6", "#64748b", "#0f172a", "#94a3b8"];
 
 interface TooltipProps {
   active?: boolean;
@@ -14,11 +15,11 @@ interface TooltipProps {
 function CustomTooltip({ active, payload }: TooltipProps) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-teal-50 border border-teal-100 px-4 py-2.5 rounded-2xl shadow-lg shadow-teal-100 flex flex-col gap-1">
-        <p className="text-xs text-teal-600 font-medium">{payload[0].name}</p>
-        <p className="text-lg font-bold text-teal-700">
+      <div className="bg-white border border-slate-200 px-3 sm:px-4 py-2 rounded-2xl shadow-lg shadow-slate-200/70 flex flex-col gap-1">
+        <p className="text-xs text-slate-500 font-medium truncate">{payload[0].name}</p>
+        <p className="text-base sm:text-lg font-bold text-slate-800">
           {payload[0].value.toLocaleString()}
-          <span className="text-xs font-normal text-teal-600 ml-1">requests</span>
+          <span className="text-xs font-normal text-slate-500 ml-1">requests</span>
         </p>
       </div>
     );
@@ -26,13 +27,13 @@ function CustomTooltip({ active, payload }: TooltipProps) {
   return null;
 }
 
-export default function TransportPieChart({ data }: TransportPieChartProps) {
+export default function TransportPieChart({ data, onSliceClick }: TransportPieChartProps) {
   const chartData = data.filter((entry) => entry.value > 0);
   const safeData = chartData.length > 0 ? chartData : data;
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm p-6 flex flex-col h-full w-full">
-      <h2 className="text-gray-500 font-medium text-sm mb-4">Transport Mode</h2>
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-6 flex flex-col h-full w-full min-w-0">
+      <h2 className="text-slate-600 font-semibold text-sm mb-3 sm:mb-4">Transport Mode</h2>
       <div className="flex-1 w-full min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -40,10 +41,17 @@ export default function TransportPieChart({ data }: TransportPieChartProps) {
               data={safeData}
               cx="50%"
               cy="50%"
-              innerRadius="50%"
-              outerRadius="75%"
+              innerRadius="45%"
+              outerRadius="72%"
               paddingAngle={4}
               dataKey="value"
+              onClick={(sliceData) => {
+                const mode = (sliceData as { name?: string })?.name;
+                if (mode && onSliceClick) {
+                  onSliceClick(mode);
+                }
+              }}
+              cursor={onSliceClick ? "pointer" : "default"}
             >
               {safeData.map((_, index) => (
                 <Cell key={index} fill={COLORS[index % COLORS.length]} />
@@ -53,8 +61,11 @@ export default function TransportPieChart({ data }: TransportPieChartProps) {
             <Legend
               iconType="circle"
               iconSize={8}
+              verticalAlign="bottom"
+              align="center"
+              wrapperStyle={{ paddingTop: 8 }}
               formatter={(value) => (
-                <span className="text-xs text-gray-500">{value}</span>
+                <span className="text-[11px] sm:text-xs text-gray-500">{value}</span>
               )}
             />
           </PieChart>

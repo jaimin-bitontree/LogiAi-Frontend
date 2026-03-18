@@ -13,10 +13,13 @@ interface StatCardProps {
     iconBgColor: string;
     iconColor: string;
     sparklineData: number[];    // ← new prop
+    onClick?: () => void;
+    clickable?: boolean;
 }
 
 // Animated counter hook
 function useCountUp(target: number, duration: number = 1500) {
+    
     const [count, setCount] = useState(0);
     useEffect(() => {
         let start = 0;
@@ -31,7 +34,7 @@ function useCountUp(target: number, duration: number = 1500) {
             }
         }, 16);
         return () => clearInterval(timer);
-    }, [target]);
+    }, [target, duration]);
     return count;
 }
 
@@ -45,42 +48,62 @@ export default function StatCard({
     iconBgColor,
     iconColor,
     sparklineData,
+    onClick,
+    clickable,
 }: StatCardProps) {
     const animatedValue = useCountUp(value);
+    const isClickable = clickable ?? Boolean(onClick);
 
     return (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between min-h-[160px]">
+        <div
+            className={`bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 shadow-sm border border-slate-200/80 flex flex-col min-h-45 sm:min-h-50 ${
+                isClickable
+                    ? "cursor-pointer hover:shadow-md hover:border-slate-300 transition"
+                    : ""
+            }`}
+            onClick={onClick}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onKeyDown={(e) => {
+                if (!isClickable || !onClick) return;
+                if (e.key === "Enter") onClick();
+                if (e.key === " ") {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+        >
             {/* Top Row */}
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className="text-gray-500 font-medium text-sm mb-2">{title}</h3>
-                    <p className="text-3xl font-bold text-gray-800">
+            <div className="flex justify-between items-start gap-3 min-w-0">
+                <div className="min-w-0">
+                    <h3 className="text-slate-500 font-semibold text-xs sm:text-sm mb-1.5 sm:mb-2 truncate">{title}</h3>
+                    <p className="text-2xl sm:text-3xl lg:text-4xl leading-none font-bold text-slate-900 tracking-tight truncate">
                         {animatedValue.toLocaleString()}
                     </p>
                 </div>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${iconBgColor}`}>
-                    <Icon className={`w-6 h-6 ${iconColor}`} />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center border border-white/50 ${iconBgColor}`}>
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColor}`} />
                 </div>
             </div>
 
             {/* Sparkline */}
-            <div className="w-full h-10 my-2">
-                <Sparklines data={sparklineData} height={40}>
+            <div className="w-full h-10 sm:h-12 mt-3 sm:mt-4 mb-2 sm:mb-3 pb-1 sm:pb-2">
+                <Sparklines data={sparklineData} height={40} margin={4}>
                     <SparklinesLine
-                        color={isPositiveTrend ? "#0f766e" : "#dc2626"}
+                        color={isPositiveTrend ? "#1d4ed8" : "#dc2626"}
                         style={{ fill: "none", strokeWidth: 2 }}
                     />
                     <SparklinesSpots
                         size={2}
-                        style={{ fill: isPositiveTrend ? "#0f766e" : "#dc2626" }}
+                        style={{ fill: isPositiveTrend ? "#1d4ed8" : "#dc2626" }}
                     />
                 </Sparklines>
             </div>
 
             {/* Bottom Row */}
-            <div className="flex items-center gap-2 text-sm font-medium">
-                <span className={`px-2 py-0.5 rounded-md text-xs font-bold flex items-center gap-1 ${
-                    isPositiveTrend ? "bg-teal-100 text-teal-700" : "bg-red-100 text-red-600"
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-sm font-medium mt-auto pt-1">
+                <span className={`px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1 ${
+                    isPositiveTrend ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-600"
                 }`}>
                     {trendPercentage}
                     {isPositiveTrend
@@ -88,7 +111,7 @@ export default function StatCard({
                         : <TrendingDown className="w-3 h-3" />
                     }
                 </span>
-                <span className="text-gray-400 text-xs">{trendLabel}</span>
+                <span className="text-slate-400 text-[11px] sm:text-xs font-semibold">{trendLabel}</span>
             </div>
         </div>
     );
