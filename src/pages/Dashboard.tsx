@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import Header from '../components/Header'
 import StatCard from '../components/StatCard'
 import { Package, XCircle, CheckCircle } from 'lucide-react'
@@ -17,16 +18,16 @@ function Dashboard() {
     // shipments defaults to [] so all metrics show 0 while loading
     const { data: shipments = [], isError, error } = useShipments();
 
-    const statCards = getDashboardStatCards(shipments);
-    const dailyData = getDailyRequests(shipments);
-    const transportData = getTransportModeData(shipments);
-    const mapCountryData = getMapCountryData(shipments);
+    const statCards = useMemo(() => getDashboardStatCards(shipments), [shipments]);
+    const dailyData = useMemo(() => getDailyRequests(shipments), [shipments]);
+    const transportData = useMemo(() => getTransportModeData(shipments), [shipments]);
+    const mapCountryData = useMemo(() => getMapCountryData(shipments), [shipments]);
 
     return (
         <div className='w-full h-screen flex bg-[var(--dashboard-bg)] p-2 gap-4 overflow-hidden'>
             <Sidebar />
 
-            <div className='flex flex-col flex-1 gap-4 pr-2 overflow-hidden'>
+            <div className='flex flex-col flex-1 gap-4 pr-2 pl-1 overflow-hidden'>
                 <Header />
 
                 {/* Non-blocking error banner — dashboard still renders with 0 values */}

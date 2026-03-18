@@ -56,7 +56,7 @@ export default function BarChartCard({
                             }}
                         /> */}
                         <Tooltip
-                            cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
+                            cursor={{ fill: 'rgba(15, 118, 110, 0.10)' }}
                             content={<CustomToolTip />}
                         />
                         <Bar

@@ -67,6 +67,47 @@ export interface ValidationResult {
   missing_fields: string[];
 }
 
+export interface ChargeItem {
+  description: string;
+  rate?: string | null;
+  basis?: string | null;
+  amount: string;
+  currency: string;
+}
+
+export interface ShipmentPricingDetails {
+  pol?: string | null;
+  pod?: string | null;
+  cargo_type?: string | null;
+  container_type?: string | null;
+  weight_dimensions?: string | null;
+  incoterm?: string | null;
+  special_requirements?: string | null;
+  chargeable_weight?: string | null;
+  volume?: string | null;
+}
+
+export interface PaymentTerms {
+  validity?: string | null;
+  conditions?: string | null;
+  payment_method?: string | null;
+}
+
+export interface PricingSchema {
+  subject?: string | null;
+  greeting?: string | null;
+  transport_mode?: string | null;
+  pricing_type?: string | null;
+  shipment_details: ShipmentPricingDetails;
+  main_freight_charges: ChargeItem[];
+  origin_charges: ChargeItem[];
+  destination_charges: ChargeItem[];
+  additional_charges: ChargeItem[];
+  payment_terms: PaymentTerms;
+  calculation_notes?: string | null;
+  closing?: string | null;
+}
+
 export interface Shipment {
   _id?: string;
   request_id: string;
@@ -83,7 +124,7 @@ export interface Shipment {
   language_metadata?: LanguageMetadata;
   request_data: RequestData;
   validation_result?: ValidationResult;
-  pricing_details: unknown[];
+  pricing_details: PricingSchema[];
   attachments: Attachment[];
   messages: Message[];
   message_ids?: string[];

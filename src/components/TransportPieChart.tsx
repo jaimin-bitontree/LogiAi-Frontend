@@ -4,7 +4,7 @@ interface TransportPieChartProps {
   data: { name: string; value: number }[];
 }
 
-const COLORS = ["#0f766e", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ef4444"];
+const COLORS = ["#0f766e", "#14b8a6", "#0ea5e9", "#64748b", "#f59e0b"];
 
 interface TooltipProps {
   active?: boolean;
@@ -14,11 +14,11 @@ interface TooltipProps {
 function CustomTooltip({ active, payload }: TooltipProps) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-indigo-50 border border-indigo-100 px-4 py-2.5 rounded-2xl shadow-lg shadow-indigo-100 flex flex-col gap-1">
-        <p className="text-xs text-indigo-400 font-medium">{payload[0].name}</p>
-        <p className="text-lg font-bold text-indigo-600">
+      <div className="bg-teal-50 border border-teal-100 px-4 py-2.5 rounded-2xl shadow-lg shadow-teal-100 flex flex-col gap-1">
+        <p className="text-xs text-teal-600 font-medium">{payload[0].name}</p>
+        <p className="text-lg font-bold text-teal-700">
           {payload[0].value.toLocaleString()}
-          <span className="text-xs font-normal text-indigo-400 ml-1">requests</span>
+          <span className="text-xs font-normal text-teal-600 ml-1">requests</span>
         </p>
       </div>
     );

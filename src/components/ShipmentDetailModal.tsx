@@ -5,7 +5,7 @@ import {
     FileText, Weight, Ship, Box, Globe, Hash, Layers, Bell,
     ExternalLink, Paperclip,
 } from "lucide-react";  
-import type { Shipment } from "../types/Shipment";
+import type { ChargeItem, PricingSchema, Shipment } from "../types/Shipment";
 import { MODAL_STATUS_STYLES, STATUS_LABELS } from "../constants/shipment";
 import { notifyShipmentCustomer } from "../service/shipmentService";
 
@@ -39,6 +39,62 @@ function SectionHeader({ title }: { title: string }) {
         <div className="col-span-2 flex items-center gap-2 mt-2">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
             <div className="flex-1 h-px bg-gray-100" />
+        </div>
+    );
+}
+
+function parseAmount(value: string | null | undefined): number {
+    const amount = Number((value ?? "").replace(/,/g, ""));
+    return Number.isFinite(amount) ? amount : 0;
+}
+
+function getQuoteCurrency(quote: PricingSchema): string {
+    return (
+        quote.main_freight_charges[0]?.currency ||
+        quote.origin_charges[0]?.currency ||
+        quote.destination_charges[0]?.currency ||
+        quote.additional_charges[0]?.currency ||
+        "USD"
+    );
+}
+
+function getQuoteTotal(quote: PricingSchema): number {
+    const allCharges: ChargeItem[] = [
+        ...quote.main_freight_charges,
+        ...quote.origin_charges,
+        ...quote.destination_charges,
+        ...quote.additional_charges,
+    ];
+
+    return allCharges.reduce((sum, charge) => sum + parseAmount(charge.amount), 0);
+}
+
+function ChargeSection({ title, charges }: { title: string; charges: ChargeItem[] }) {
+    if (charges.length === 0) return null;
+
+    return (
+        <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{title}</p>
+            <div className="rounded-lg border border-gray-200 overflow-hidden">
+                {charges.map((charge, index) => (
+                    <div
+                        key={`${charge.description}-${index}`}
+                        className="flex items-start justify-between gap-3 px-3 py-2 text-sm border-b border-gray-100 last:border-b-0"
+                    >
+                        <div>
+                            <p className="text-gray-800 font-medium">{charge.description}</p>
+                            {(charge.rate || charge.basis) && (
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    {[charge.rate, charge.basis].filter(Boolean).join(" ")}
+                                </p>
+                            )}
+                        </div>
+                        <p className="text-gray-800 font-semibold whitespace-nowrap">
+                            {charge.amount} {charge.currency}
+                        </p>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
@@ -77,6 +133,7 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
 
     const req = shipment?.request_data?.required;
     const opt = shipment?.request_data?.optional;
+    const pricingDetails = shipment?.pricing_details ?? [];
 
     const formatDate = (d: string): string =>
         new Date(d).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
@@ -181,6 +238,70 @@ export default function ShipmentDetailModal({ shipment, onClose }: ShipmentDetai
                         <InfoRow icon={Calendar} label="Last Updated" value={formatDate(shipment.updated_at)} />
                         <InfoRow icon={FileText} label="Subject" value={shipment.subject} />
                         <InfoRow icon={FileText} label="Intent" value={shipment.intent} />
+                    </div>
+
+                    {/* Pricing Details */}
+                    <div className="mt-5">
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Pricing Details</span>
+                            <div className="flex-1 h-px bg-gray-100" />
+                        </div>
+
+                        {pricingDetails.length > 0 ? (
+                            <div className="flex flex-col gap-4">
+                                {pricingDetails.map((quote, quoteIndex) => {
+                                    const currency = getQuoteCurrency(quote);
+                                    const total = getQuoteTotal(quote);
+
+                                    return (
+                                        <div key={`${shipment.request_id}-quote-${quoteIndex}`} className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-3">
+                                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-900">{quote.subject || `Quotation ${quoteIndex + 1}`}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Mode: {quote.transport_mode || "-"}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Estimated Total</p>
+                                                    <p className="text-lg font-bold text-teal-700">{total.toFixed(2)} {currency}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                                                <p><span className="font-medium text-gray-700">POL:</span> {quote.shipment_details.pol || "-"}</p>
+                                                <p><span className="font-medium text-gray-700">POD:</span> {quote.shipment_details.pod || "-"}</p>
+                                                <p><span className="font-medium text-gray-700">Incoterm:</span> {quote.shipment_details.incoterm || "-"}</p>
+                                                <p><span className="font-medium text-gray-700">Chargeable Wt:</span> {quote.shipment_details.chargeable_weight || "-"}</p>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <ChargeSection title="Main Freight Charges" charges={quote.main_freight_charges} />
+                                                <ChargeSection title="Origin Charges" charges={quote.origin_charges} />
+                                                <ChargeSection title="Destination Charges" charges={quote.destination_charges} />
+                                                <ChargeSection title="Additional Charges" charges={quote.additional_charges} />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 pt-1">
+                                                <p><span className="font-medium text-gray-700">Validity:</span> {quote.payment_terms.validity || "-"}</p>
+                                                <p><span className="font-medium text-gray-700">Payment Method:</span> {quote.payment_terms.payment_method || "-"}</p>
+                                                {quote.payment_terms.conditions && (
+                                                    <p className="sm:col-span-2"><span className="font-medium text-gray-700">Conditions:</span> {quote.payment_terms.conditions}</p>
+                                                )}
+                                            </div>
+
+                                            {quote.calculation_notes && (
+                                                <div className="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                                                    {quote.calculation_notes}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-400 italic">No pricing details available</p>
+                        )}
                     </div>
 
                     {/* Attachments */}

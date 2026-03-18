@@ -36,7 +36,7 @@ export default function ShipmentPage() {
   const renderPageShell = (content: React.ReactNode) => (
     <div className='w-full h-screen flex bg-[var(--dashboard-bg)] p-2 gap-4 overflow-hidden'>
       <Sidebar />
-      <div className='flex flex-col flex-1 gap-4 pr-2 overflow-hidden'>
+      <div className='flex flex-col flex-1 gap-4 pr-2 pl-1 overflow-hidden'>
         <Header title="Shipments" />
         <div className='info bg-transparent flex-1 overflow-y-auto rounded-3xl pb-4 p-2 pr-2'>
           {content}
