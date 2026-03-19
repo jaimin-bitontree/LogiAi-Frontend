@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { api } from "../service/api";
 import { loginWithCredentials } from "../service/authService";
@@ -11,7 +11,7 @@ const AUTH_ADMIN_NAME_STORAGE_KEY = "logiai_admin_name";
 interface AuthContextValue {
   isAuthenticated: boolean;
   adminName: string;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ message: string }>;
   logout: () => void;
 }
 
@@ -27,20 +27,54 @@ function applyAuthHeader(token: string | null) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [adminName, setAdminName] = useState(() => {
+    const savedToken = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    if (!savedToken) return "Admin User";
     return localStorage.getItem(AUTH_ADMIN_NAME_STORAGE_KEY) ?? "Admin User";
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const savedToken = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
-    const savedSession = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
 
     if (savedToken) {
       applyAuthHeader(savedToken);
       return true;
     }
 
-    return savedSession === "active";
+    return false;
   });
+
+  useEffect(() => {
+    const handleForcedLogout = () => {
+      applyAuthHeader(null);
+      setAdminName("Admin User");
+      setIsAuthenticated(false);
+    };
+
+    window.addEventListener("auth:logout", handleForcedLogout);
+
+    return () => {
+      window.removeEventListener("auth:logout", handleForcedLogout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const intervalId = window.setInterval(() => {
+      const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+      if (token) return;
+
+      localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
+      localStorage.removeItem(AUTH_ADMIN_NAME_STORAGE_KEY);
+      applyAuthHeader(null);
+      setAdminName("Admin User");
+      setIsAuthenticated(false);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isAuthenticated]);
 
   const login = async (email: string, password: string) => {
     const result = await loginWithCredentials({ email, password });
@@ -58,6 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(AUTH_ADMIN_NAME_STORAGE_KEY, resolvedName);
     setAdminName(resolvedName);
     setIsAuthenticated(true);
+
+    return { message: result.message };
   };
 
   const logout = () => {

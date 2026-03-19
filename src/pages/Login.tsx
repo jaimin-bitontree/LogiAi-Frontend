@@ -1,31 +1,78 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Lock, LogIn, Mail, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, Lock, LogIn, Mail, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { z } from "zod";
+import toast from "react-hot-toast";
 
-interface LocationState {
-  from?: {
-    pathname?: string;
-  };
-}
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, "Email is required")
+  .email("Please enter a valid email address");
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters long")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/\d/, "Password must contain at least one number")
+  .regex(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, "Password must contain at least one special character");
 
 export default function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state as LocationState | null;
-  const redirectPath = state?.from?.pathname || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [emailErrors, setEmailErrors] = useState<string[]>([]);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectPath, { replace: true });
+      navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, navigate, redirectPath]);
+  }, [isAuthenticated, navigate]);
+
+  const validateEmail = (value: string) => {
+    try {
+      emailSchema.parse(value);
+      setEmailErrors([]);
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setEmailErrors(err.issues.map((e: z.ZodIssue) => e.message));
+      }
+      return false;
+    }
+  };
+
+  const validatePassword = (pwd: string) => {
+    try {
+      passwordSchema.parse(pwd);
+      setPasswordErrors([]);
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setPasswordErrors(err.issues.map((e: z.ZodIssue) => e.message));
+      }
+      return false;
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    if (password.trim()) {
+      validatePassword(password);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (email.trim()) {
+      validateEmail(email);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,16 +83,26 @@ export default function LoginPage() {
       return;
     }
 
+    if (!validateEmail(email)) {
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      await login(email.trim(), password);
-      navigate(redirectPath, { replace: true });
+      const result = await login(email.trim(), password);
+      toast.success(result.message || "Login successful!");
+      navigate("/dashboard", { replace: true });
     } catch (submitError) {
       const message =
         submitError instanceof Error && submitError.message
           ? submitError.message
           : "Login failed. Please try again.";
       setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -74,22 +131,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/8 p-3.5">
-                <div className="flex items-center gap-2 text-cyan-200">
-                  <Truck className="h-4 w-4" />
-                  <p className="text-xs font-semibold uppercase tracking-wide">Live Tracking</p>
-                </div>
-                <p className="mt-2 text-xs text-slate-200/85">Real-time shipment visibility across all modes.</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/8 p-3.5">
-                <div className="flex items-center gap-2 text-emerald-200">
-                  <ShieldCheck className="h-4 w-4" />
-                  <p className="text-xs font-semibold uppercase tracking-wide">Secure Access</p>
-                </div>
-                <p className="mt-2 text-xs text-slate-200/85">Role-aware and session-protected admin access.</p>
-              </div>
-            </div>
+
           </div>
 
           <div className="bg-white/96 p-6 sm:p-8 lg:p-10">
@@ -112,11 +154,25 @@ export default function LoginPage() {
                       type="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
+                      onBlur={handleEmailBlur}
                       placeholder="admin@logiai.com"
-                      className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-3 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent"
+                      className={`w-full rounded-xl border ${
+                        emailErrors.length > 0 ? "border-red-300" : "border-slate-200"
+                      } bg-white pl-10 pr-3 py-3 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 ${
+                        emailErrors.length > 0 ? "focus:ring-red-600" : "focus:ring-cyan-600"
+                      } focus:border-transparent`}
                       autoComplete="email"
                     />
                   </div>
+                  {emailErrors.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {emailErrors.map((err, idx) => (
+                        <p key={idx} className="text-xs text-red-600">
+                          - {err}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </label>
 
                 <label className="block">
@@ -127,11 +183,25 @@ export default function LoginPage() {
                       type="password"
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
+                      onBlur={handlePasswordBlur}
                       placeholder="Enter your password"
-                      className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-3 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent"
+                      className={`w-full rounded-xl border ${
+                        passwordErrors.length > 0 ? "border-red-300" : "border-slate-200"
+                      } bg-white pl-10 pr-3 py-3 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 ${
+                        passwordErrors.length > 0 ? "focus:ring-red-600" : "focus:ring-cyan-600"
+                      } focus:border-transparent`}
                       autoComplete="current-password"
                     />
                   </div>
+                  {passwordErrors.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {passwordErrors.map((err, idx) => (
+                        <p key={idx} className="text-xs text-red-600">
+                          • {err}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </label>
 
                 {error && (

@@ -195,6 +195,17 @@ export default function ShipmentDetailModal({ shipment, onClose, asPage = false 
                         </div>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        {shipment.status === "QUOTED" && (
+                            <button
+                                type="button"
+                                onClick={handleSendReminder}
+                                disabled={reminderMutation.isPending}
+                                className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5 sm:gap-2"
+                            >
+                                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                {reminderMutation.isPending ? "Sending..." : "Send Reminder"}
+                            </button>
+                        )}
                         <span className={`hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-full border ${MODAL_STATUS_STYLES[shipment.status]}`}>
                             {STATUS_LABELS[shipment.status]}
                         </span>
@@ -441,17 +452,6 @@ export default function ShipmentDetailModal({ shipment, onClose, asPage = false 
 
                 {/* Footer */}
                 <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50/80 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-0 shrink-0">
-                    {shipment.status === "QUOTED" && (
-                        <button
-                            type="button"
-                            onClick={handleSendReminder}
-                            disabled={reminderMutation.isPending}
-                            className="sm:mr-3 px-4 sm:px-5 py-2 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
-                        >
-                            <Bell className="w-4 h-4" />
-                            {reminderMutation.isPending ? "Sending..." : "Send Reminder"}
-                        </button>
-                    )}
                     <button
                         onClick={onClose}
                         className="px-4 sm:px-5 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"

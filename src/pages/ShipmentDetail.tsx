@@ -30,7 +30,7 @@ export default function ShipmentDetailPage() {
         onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
       />
       <div className="flex flex-col flex-1 min-w-0 gap-2 sm:gap-3 p-1.5 sm:p-3 lg:p-4 overflow-hidden">
-        <Header title="Shipment Details" />
+        <Header title="Shipment Details" showLogout />
         <div className="info bg-transparent flex-1 overflow-y-auto overflow-x-hidden rounded-2xl sm:rounded-3xl pb-2 sm:pb-3 p-0.5 sm:p-1.5 pr-0.5 sm:pr-1.5">
           {content}
         </div>
