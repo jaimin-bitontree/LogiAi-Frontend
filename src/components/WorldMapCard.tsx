@@ -24,21 +24,21 @@ interface TooltipData {
 }
 
 function getColor(count: number, maxCount: number): string {
-        if (!count) return "#e2e8f0";
+    if (!count) return "#cbd5e1"; // Slate 300 (increased opacity from e2e8f0)
     if (maxCount <= 1) return "#3b82f6";
 
-        const ratio = count / maxCount;
+    const ratio = count / maxCount;
     if (ratio < 0.25) return "#dbeafe";
     if (ratio < 0.5) return "#bfdbfe";
     if (ratio < 0.75) return "#60a5fa";
-    return "#1d4ed8";
+    return "#2563eb"; // Blue 600 (decreased from 1d4ed8 / Blue 700)
 }
 
 export default function WorldMapCard({ countryData, onCountryClick }: WorldMapCardProps) {
     const [zoom, setZoom] = useState(3);
     const maxCount = Math.max(0, ...Object.values(countryData));
 
-    const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+    const [tooltip, setTooltip] = useState<TooltipData|null>(null);
 
     return (
         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-6 flex flex-col h-full w-full relative min-w-0">
@@ -49,7 +49,7 @@ export default function WorldMapCard({ countryData, onCountryClick }: WorldMapCa
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-slate-400">Low</span>
                     <div className="flex gap-0.5">
-                        {["#e2e8f0", "#dbeafe", "#bfdbfe", "#60a5fa", "#1d4ed8"].map(c => (
+                        {["#cbd5e1", "#dbeafe", "#bfdbfe", "#60a5fa", "#2563eb"].map(c => (
                             <div key={c} className="w-3.5 sm:w-4 h-3 rounded-sm" style={{ backgroundColor: c }} />
                         ))}
                     </div>

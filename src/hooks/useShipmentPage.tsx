@@ -35,19 +35,10 @@ export function useShipmentPage(
 
   useEffect(() => {
     setStatusFilter(safeInitialStatus);
-  }, [safeInitialStatus]);
-
-  useEffect(() => {
     setDayFilter(initialDay);
-  }, [initialDay]);
-
-  useEffect(() => {
     setModeFilter(initialMode);
-  }, [initialMode]);
-
-  useEffect(() => {
     setCountryCodeFilter(initialCountryCode);
-  }, [initialCountryCode]);
+  }, [safeInitialStatus, initialDay, initialMode, initialCountryCode]);
 
    const {
     data: shipments = [],
