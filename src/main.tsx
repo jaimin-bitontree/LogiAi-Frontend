@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import { fetchExchangeRates } from './service/currencyService'
 import { AuthProvider } from './context/AuthContext'
+import { HashRouter } from "react-router-dom";
 
 const queryClient = new QueryClient()
 
@@ -19,11 +20,13 @@ void queryClient
   })
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+ <StrictMode>
+  <HashRouter>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <App />
       </AuthProvider>
     </QueryClientProvider>
-  </StrictMode>,
+  </HashRouter>
+</StrictMode>
 )
