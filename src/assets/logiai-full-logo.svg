@@ -1,0 +1,24 @@
+<svg width="220" height="56" viewBox="0 0 220 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="4" y1="4" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="0.5" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="textGradient" x1="66" y1="10" x2="210" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="48" height="48" rx="14" fill="url(#iconGradient)"/>
+  <path d="M18 22L28 17L38 22L28 27L18 22Z" fill="white" fill-opacity="0.98"/>
+  <path d="M18 22V32L28 37V27L18 22Z" fill="white" fill-opacity="0.82"/>
+  <path d="M38 22V32L28 37V27L38 22Z" fill="white" fill-opacity="0.9"/>
+  <path d="M19.5 40C23.5 35.2 30 35.2 34 40" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M31 36.8L34.8 40L31 43.2" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="66" y="37" fill="url(#textGradient)" font-size="28" font-family="Poppins, Segoe UI, Arial, sans-serif" font-weight="700" letter-spacing="0.2">
+    Logi AI
+  </text>
+</svg>
