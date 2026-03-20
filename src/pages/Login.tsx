@@ -25,7 +25,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [emailErrors, setEmailErrors] = useState<string[]>([]);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);

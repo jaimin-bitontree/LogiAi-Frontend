@@ -34,7 +34,8 @@ export default function BarChartCard<T extends object>({
                         data={data}
                         margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
                         onClick={(state) => {
-                            const payload = state?.activePayload?.[0]?.payload as T | undefined;
+                            const activePayload = (state as { activePayload?: { payload: T }[] })?.activePayload;
+                            const payload = activePayload?.[0]?.payload;
                             if (payload && onBarClick) {
                                 onBarClick(payload);
                             }
