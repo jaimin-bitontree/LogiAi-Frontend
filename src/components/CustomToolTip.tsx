@@ -1,4 +1,7 @@
-export default function CustomTooltip({ active, payload, label }: any) {
+import type { TooltipProps } from 'recharts';
+import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+
+export default function CustomTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
 
     if (active && payload && payload.length) {
         return (

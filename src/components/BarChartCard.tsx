@@ -54,15 +54,6 @@ export default function BarChartCard<T extends object>({
                             width={26}
                             tick={{ fill: '#9ca3af', fontSize: 11 }}
                         />
-                        {/* <Tooltip
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{
-                                borderRadius: '12px',
-                                border: 'none',
-                                boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.1)',
-                                fontWeight: 600
-                            }}
-                        /> */}
                         <Tooltip
                             cursor={{ fill: 'rgba(29, 78, 216, 0.10)' }}
                             content={<CustomToolTip />}

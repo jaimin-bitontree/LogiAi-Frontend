@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Lock, LogIn, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, LogIn, Mail, Sparkles, Globe, TrendingUp, Bell } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -101,7 +101,6 @@ export default function LoginPage() {
         submitError instanceof Error && submitError.message
           ? submitError.message
           : "Login failed. Please try again.";
-      setError(message);
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -126,12 +125,48 @@ export default function LoginPage() {
                 Smart logistics operations,
                 <span className="text-cyan-300"> one unified dashboard.</span>
               </h1>
-              <p className="mt-4 max-w-md text-sm leading-6 text-slate-200/90">
+              <p className="mt-4 mb-4 max-w-md text-sm leading-6 text-slate-200/90">
                 Track requests, monitor routes, and take action instantly with a live operational view.
               </p>
             </div>
 
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300 ring-1 ring-cyan-400/20">
+                  <Globe className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white">Country-Wise Analytics</h3>
+                  <p className="mt-1 text-xs text-slate-400">Interactive world map integration to track cargo distributions across 150+ countries.</p>
+                </div>
+              </div>
 
+              <div className="flex items-start gap-4">
+                <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-400/10 text-blue-300 ring-1 ring-blue-400/20">
+                  <TrendingUp className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white">Revenue Control</h3>
+                  <p className="mt-1 text-xs text-slate-400">Monitor total revenue and financial metrics with real-time multi-currency support.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/20">
+                  <Bell className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-white">Shipment Alerts</h3>
+                  <p className="mt-1 text-xs text-slate-400">Stay updated with instant reminders and notifications for pending and confirmed requests.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-white/5">
+              <p className="text-[11px] text-slate-400 font-medium">
+                Unified control for <span className="text-cyan-400">LogiAI</span> premium enterprise operations.
+              </p>
+            </div>
           </div>
 
           <div className="bg-white/96 p-6 sm:p-8 lg:p-10">
@@ -203,12 +238,6 @@ export default function LoginPage() {
                     </div>
                   )}
                 </label>
-
-                {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
 
                 <button
                   type="submit"

@@ -7,6 +7,14 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
+const getNavLinkClass = (isActive: boolean, collapsed: boolean) => {
+    return `flex items-center rounded-xl transition-colors ${
+        collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
+    } ${
+        isActive ? "bg-white/15 text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"
+    }`;
+};
+
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return (
         <aside
@@ -64,13 +72,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <nav className="flex flex-col gap-2">
                 <NavLink
                     to="/dashboard"
-                    className={({ isActive }) =>
-                        `flex items-center rounded-xl transition-colors ${
-                            collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
-                        } ${
-                            isActive ? "bg-white/15 text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                        }`
-                    }
+                    className={({ isActive }) => getNavLinkClass(isActive, collapsed)}
                     title="Dashboard"
                 >
                     <LayoutDashboard size={20} />
@@ -79,13 +81,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
                 <NavLink
                     to="/shipments"
-                    className={({ isActive }) =>
-                        `flex items-center rounded-xl transition-colors ${
-                            collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3"
-                        } ${
-                            isActive ? "bg-white/15 text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"
-                        }`
-                    }
+                    className={({ isActive }) => getNavLinkClass(isActive, collapsed)}
                     title="Shipments"
                 >
                     <Package size={20} />

@@ -78,11 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const result = await loginWithCredentials({ email, password });
-    const resolvedName = result.adminName || "Admin User";
+    const resolvedName = result.user_info?.full_name || "Admin User";
 
-    if (result.token) {
-      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, result.token);
-      applyAuthHeader(result.token);
+    if (result.access_token) {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, result.access_token);
+      applyAuthHeader(result.access_token);
     } else {
       localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
       applyAuthHeader(null);
